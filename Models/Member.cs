@@ -7,6 +7,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AspNetCore.Models
 {
+    //todo 1. Importuojamo failo headeriai buvo pakoreguoti:
+    //X,Y,object_id => x,y,OID
+
     [Table("TestMembers")]
     public class Member
     {

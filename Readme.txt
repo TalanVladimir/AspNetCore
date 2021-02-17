@@ -20,6 +20,3 @@ Nonfunctional requirements:
 	5. Project deployable using docker(optional)
 
 Completed task should be uploaded to Github or full repository can be provided.
-
-Importuojamo failo headeriai buvo pakoreguoti:
-x,y,case_code,confirmation_date,municipality_code,municipality_name,age_bracket,gender,OID

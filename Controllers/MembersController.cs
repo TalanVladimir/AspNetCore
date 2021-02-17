@@ -93,17 +93,6 @@ namespace AspNetCore.Controllers
                 _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers OFF");
                 transaction.Commit();
             }
-
-            /*    _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[TestMembers] ON");
-            _context.Member.AddRange(list);
-            _context.SaveChanges();
-            _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT [dbo].[TestMembers] OFF");
-*/
-            /*foreach (Member memb in list)
-            {
-                Create(memb);
-                //_context.ChangeTracker.DetectChanges();
-            };*/
             return Redirect("Members");
         }
 
