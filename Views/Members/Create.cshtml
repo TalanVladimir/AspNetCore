@@ -1,0 +1,68 @@
+﻿@model AspNetCore.Models.Member
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>Create</h1>
+
+<h4>Member</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="x" class="control-label"></label>
+                <input asp-for="x" class="form-control" />
+                <span asp-validation-for="x" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="y" class="control-label"></label>
+                <input asp-for="y" class="form-control" />
+                <span asp-validation-for="y" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="case_code" class="control-label"></label>
+                <input asp-for="case_code" class="form-control" />
+                <span asp-validation-for="case_code" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="confirmation_date" class="control-label"></label>
+                <input asp-for="confirmation_date" class="form-control" />
+                <span asp-validation-for="confirmation_date" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="municipality_code" class="control-label"></label>
+                <input asp-for="municipality_code" class="form-control" />
+                <span asp-validation-for="municipality_code" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="municipality_name" class="control-label"></label>
+                <input asp-for="municipality_name" class="form-control" />
+                <span asp-validation-for="municipality_name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="age_bracket" class="control-label"></label>
+                <input asp-for="age_bracket" class="form-control" />
+                <span asp-validation-for="age_bracket" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="gender" class="control-label"></label>
+                <input asp-for="gender" class="form-control" />
+                <span asp-validation-for="gender" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

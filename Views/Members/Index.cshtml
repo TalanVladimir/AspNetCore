@@ -1,0 +1,117 @@
+﻿@model MembersPaginatedList<AspNetCore.Models.Member>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+<div class="row">
+    <div class="col-md-5">
+        <form method="post" enctype="multipart/form-data" asp-controller="Members" asp-action="Index">
+            <div class="form-group">
+                <div class="col-md-10">
+                    <p>Upload file</p>
+                    <input class="form-control" name="files" type="file" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-10">
+                    <input class="btn btn-success" type="submit" value="Upload" />
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="x">x</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="y">y</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="case_code">case_code</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="confirmation_date">confirmation_date</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_code">municipality_code</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_name">municipality_name</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="age_bracket">age_bracket</a>
+            </th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="gender">gender</a>
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.x)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.y)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.case_code)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.confirmation_date)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.municipality_code)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.municipality_name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.age_bracket)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.gender)
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.OID">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.OID">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.OID">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@{
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+}
+
+<a asp-action="Index"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-pageNumber="@(Model.PageIndex - 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   class="btn btn-default @prevDisabled">
+    Previous
+</a>
+<a asp-action="Index"
+   asp-route-sortOrder="@ViewData["CurrentSort"]"
+   asp-route-pageNumber="@(Model.PageIndex + 1)"
+   asp-route-currentFilter="@ViewData["CurrentFilter"]"
+   class="btn btn-default @nextDisabled">
+    Next
+</a>

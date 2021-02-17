@@ -1,0 +1,116 @@
+﻿@model IEnumerable<AspNetCore.Models.Member>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Chart</h1>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/export-data.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+
+<figure class="highcharts-figure">
+    <div id="container"></div>
+    <p class="highcharts-description">
+        This chart shows how data labels can be added to the data series. This
+        can increase readability and comprehension for small datasets.
+    </p>
+</figure>
+
+@{
+    string[] setCategories = new string[0];
+
+    string setMale = "Vyras";
+    string setFemale = "Moteris";
+    string setUnknown = "nenustatyta";
+
+    int[] result0 = new int[0];
+    int[] result1 = new int[0];
+    int[] result2 = new int[0];
+
+    int ind = 0;
+
+    string getCat = "";
+    string getRes0 = "";
+    string getRes1 = "";
+    string getRes2 = "";
+}
+
+@foreach (var item in Model)
+{
+    string munName = "\"" + item.municipality_name + "\"";
+    ind = Array.IndexOf(setCategories, item.municipality_name);
+    if (ind == -1)
+    {
+        Array.Resize(ref setCategories, setCategories.Length + 1);
+        setCategories[setCategories.Length - 1] = item.municipality_name;
+        Array.Resize(ref result0, result0.Length + 1);
+        result0[result0.Length - 1] = 0;
+        Array.Resize(ref result1, result1.Length + 1);
+        result1[result1.Length - 1] = 0;
+        Array.Resize(ref result2, result2.Length + 1);
+        result2[result2.Length - 1] = 0;
+        ind = setCategories.Length - 1;
+    }
+
+    switch (item.gender)
+    {
+        case "Vyras":
+            ++result0[ind];
+            break;
+        case "Moteris":
+            ++result1[ind];
+            break;
+        case "nenustatyta":
+        default:
+            ++result2[ind];
+            break;
+    }
+
+    getCat = "['" + string.Join("','", setCategories) + "']";
+    getRes0 = "[" + string.Join(", ", result0) + "]";
+    getRes1 = "[" + string.Join(", ", result1) + "]";
+    getRes2 = "[" + string.Join(", ", result2) + "]";
+}
+
+<script>
+    Highcharts.chart('container', {
+        chart: {
+            type: 'line'
+        },
+        title: {
+            text: 'Vidutinis skaičius'
+        },
+        subtitle: {
+            text: 'Source: MSSQL Database'
+        },
+        xAxis: {
+            categories: @Html.Raw(getCat)
+        },
+        yAxis: {
+            title: {
+                text: 'Skaičius'
+            }
+        },
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: true
+                },
+                enableMouseTracking: false
+            }
+        },
+        series: [{
+            name: 'Vyras',
+            data: @getRes0
+        }, {
+            name: 'Moteris',
+            data: @getRes1
+        }, {
+            name: 'nenustatyta',
+            data: @getRes2
+        }]
+    });
+</script>
