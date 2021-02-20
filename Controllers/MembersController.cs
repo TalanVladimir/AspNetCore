@@ -13,6 +13,7 @@ using LINQtoCSV;
 using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.AspNetCore.SignalR;
 
 namespace AspNetCore.Controllers
 {
@@ -26,12 +27,37 @@ namespace AspNetCore.Controllers
         }
 
         // GET: Members
-        public async Task<IActionResult> Index(string sortOrder, string currentFilter, int? pageNumber)
+        public async Task<IActionResult> Index(string? searchString, string? sortOrder, string? currentFilter, int? pageNumber)
         {
             //ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
             //ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
 
             var members = from s in _context.Member select s;
+
+            IQueryable<string> membersGender = from m in _context.Member
+                                               orderby m.confirmation_date
+                                               select m.gender;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                foreach (string part in searchString.Split(' '))
+                {
+                    if (!string.IsNullOrEmpty(part))
+                    {
+                        if (!part.Contains(" "))
+                        {
+                            members = members.Where(s => s.x.Contains(searchString)
+                                                        || s.y.Contains(searchString)
+                                                        || s.confirmation_date.ToString().Contains(searchString)
+                                                        || s.municipality_code.Contains(searchString)
+                                                        || s.municipality_name.Contains(searchString)
+                                                        || s.age_bracket.Contains(searchString)
+                                                        || s.gender.Contains(searchString));
+                        }
+                    }
+                }
+            }
+
             switch (currentFilter)
             {
                 case "x":
@@ -39,9 +65,6 @@ namespace AspNetCore.Controllers
                     break;
                 case "y":
                     members = members.OrderBy(s => s.y);
-                    break;
-                case "case_code":
-                    members = members.OrderBy(s => s.case_code);
                     break;
                 case "confirmation_date":
                     members = members.OrderBy(s => s.confirmation_date);
@@ -59,10 +82,10 @@ namespace AspNetCore.Controllers
                     members = members.OrderBy(s => s.gender);
                     break;
                 default:
-                    members = members.OrderBy(s => s.OID);
+                    members = members.OrderBy(s => s.confirmation_date);
                     break;
             }
-            int pageSize = 50;
+            int pageSize = 500;
             return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
@@ -72,9 +95,15 @@ namespace AspNetCore.Controllers
             return View(await _context.Member.ToListAsync());
         }
 
+        [Authorize]
+        public IActionResult DbUpload()
+        {
+            return View();
+        }
+
         [HttpPost]
         [Authorize]
-        public IActionResult Index(IFormFile files)
+        public IActionResult DbUpload(IFormFile files)
         {
             using (_context) using (var transaction = _context.Database.BeginTransaction())
             {
@@ -87,6 +116,7 @@ namespace AspNetCore.Controllers
                 StreamReader streamReader = new StreamReader(files.OpenReadStream());
                 IEnumerable<Member> list = csvContext.Read<Member>(streamReader, csvFileDescription);
 
+                //_context.Member.UpdateRange(list);
                 _context.Member.AddRange(list);
                 _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers ON");
                 _context.SaveChanges();
