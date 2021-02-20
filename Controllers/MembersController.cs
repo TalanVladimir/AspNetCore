@@ -27,16 +27,9 @@ namespace AspNetCore.Controllers
         }
 
         // GET: Members
-        public async Task<IActionResult> Index(string? searchString, string? sortOrder, string? currentFilter, int? pageNumber)
+        public async Task<IActionResult> Index(string? searchString, string? currentFilter, int? pageNumber)
         {
-            //ViewData["NameSortParm"] = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
-            //ViewData["DateSortParm"] = sortOrder == "Date" ? "date_desc" : "Date";
-
             var members = from s in _context.Member select s;
-
-            IQueryable<string> membersGender = from m in _context.Member
-                                               orderby m.confirmation_date
-                                               select m.gender;
 
             if (!String.IsNullOrEmpty(searchString))
             {
@@ -85,14 +78,168 @@ namespace AspNetCore.Controllers
                     members = members.OrderBy(s => s.confirmation_date);
                     break;
             }
-            int pageSize = 500;
+            int pageSize = 100;
             return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         // GET: Members/Chart
-        public async Task<IActionResult> Chart()
+        public async Task<IActionResult> Chart(string? sortBy)
         {
-            return View(await _context.Member.ToListAsync());
+            var members = from s in _context.Member select s;
+
+            string[] setX = new string[0];
+
+            int[] setRes0 = new int[0];
+            int[] setRes1 = new int[0];
+            int[] setRes2 = new int[0];
+
+            int ind = 0;
+
+            string getX = "";
+            string getRes0 = "";
+            string getRes1 = "";
+            string getRes2 = "";
+            string getTitle = "";
+
+            switch (sortBy)
+            {
+                case "confirmation_date":
+                    foreach (var item in members)
+                    {
+                        members = members.GroupBy(s => s.confirmation_date).Select(g => g.OrderByDescending(p => p.confirmation_date).FirstOrDefault());
+                        string munName = item.confirmation_date.ToString();
+                        ind = Array.IndexOf(setX, item.confirmation_date);
+                        if (ind == -1)
+                        {
+                            Array.Resize(ref setX, setX.Length + 1);
+                            setX[setX.Length - 1] = item.age_bracket;
+                            Array.Resize(ref setRes0, setRes0.Length + 1);
+                            setRes0[setRes0.Length - 1] = 0;
+                            Array.Resize(ref setRes1, setRes1.Length + 1);
+                            setRes1[setRes1.Length - 1] = 0;
+                            Array.Resize(ref setRes2, setRes2.Length + 1);
+                            setRes2[setRes2.Length - 1] = 0;
+                            ind = setX.Length - 1;
+                        }
+
+                        switch (item.gender)
+                        {
+                            case "Vyras":
+                                ++setRes0[ind];
+                                break;
+                            case "Moteris":
+                                ++setRes1[ind];
+                                break;
+                            case "nenustatyta":
+                            default:
+                                ++setRes2[ind];
+                                break;
+                        }
+
+                        getTitle = "Sort By confirmation Date";
+
+                        getX = "['" + string.Join("','", setX) + "']";
+                        getRes0 = "[" + string.Join(", ", setRes0) + "]";
+                        getRes1 = "[" + string.Join(", ", setRes1) + "]";
+                        getRes2 = "[" + string.Join(", ", setRes2) + "]";
+                    }
+
+                    members = members.OrderBy(s => s.confirmation_date);
+                    break;
+                case "age_bracket":
+                    foreach (var item in members)
+                    {
+                        string munName = "\"" + item.age_bracket + "\"";
+                        ind = Array.IndexOf(setX, item.age_bracket);
+                        if (ind == -1)
+                        {
+                            Array.Resize(ref setX, setX.Length + 1);
+                            setX[setX.Length - 1] = item.age_bracket;
+                            Array.Resize(ref setRes0, setRes0.Length + 1);
+                            setRes0[setRes0.Length - 1] = 0;
+                            Array.Resize(ref setRes1, setRes1.Length + 1);
+                            setRes1[setRes1.Length - 1] = 0;
+                            Array.Resize(ref setRes2, setRes2.Length + 1);
+                            setRes2[setRes2.Length - 1] = 0;
+                            ind = setX.Length - 1;
+                        }
+
+                        switch (item.gender)
+                        {
+                            case "Vyras":
+                                ++setRes0[ind];
+                                break;
+                            case "Moteris":
+                                ++setRes1[ind];
+                                break;
+                            case "nenustatyta":
+                            default:
+                                ++setRes2[ind];
+                                break;
+                        }
+
+                        getTitle = "Sort By Age Bracket";
+
+                        getX = "['" + string.Join("','", setX) + "']";
+                        getRes0 = "[" + string.Join(", ", setRes0) + "]";
+                        getRes1 = "[" + string.Join(", ", setRes1) + "]";
+                        getRes2 = "[" + string.Join(", ", setRes2) + "]";
+                    }
+
+                    members = members.OrderBy(s => s.age_bracket);
+                    break;
+                case "municipality_name":
+                default:
+                    foreach (var item in members)
+                    {
+                        string munName = "\"" + item.municipality_name + "\"";
+                        ind = Array.IndexOf(setX, item.municipality_name);
+                        if (ind == -1)
+                        {
+                            Array.Resize(ref setX, setX.Length + 1);
+                            setX[setX.Length - 1] = item.municipality_name;
+                            Array.Resize(ref setRes0, setRes0.Length + 1);
+                            setRes0[setRes0.Length - 1] = 0;
+                            Array.Resize(ref setRes1, setRes1.Length + 1);
+                            setRes1[setRes1.Length - 1] = 0;
+                            Array.Resize(ref setRes2, setRes2.Length + 1);
+                            setRes2[setRes2.Length - 1] = 0;
+                            ind = setX.Length - 1;
+                        }
+
+                        switch (item.gender)
+                        {
+                            case "Vyras":
+                                ++setRes0[ind];
+                                break;
+                            case "Moteris":
+                                ++setRes1[ind];
+                                break;
+                            case "nenustatyta":
+                            default:
+                                ++setRes2[ind];
+                                break;
+                        }
+
+                        getTitle = "Sort By Municipality Name";
+
+                        getX = "['" + string.Join("','", setX) + "']";
+                        getRes0 = "[" + string.Join(", ", setRes0) + "]";
+                        getRes1 = "[" + string.Join(", ", setRes1) + "]";
+                        getRes2 = "[" + string.Join(", ", setRes2) + "]";
+                    }
+
+                    members = members.OrderBy(s => s.municipality_name);
+                    break;
+            }
+            ViewData["getTitle"] = "'" + getTitle + "'";
+            ViewData["getX"] = getX;
+            ViewData["getRes0"] = getRes0;
+            ViewData["getRes1"] = getRes1;
+            ViewData["getRes2"] = getRes2;
+
+            //return View(await _context.Member.ToListAsync());
+            return View();
         }
 
         [Authorize]
