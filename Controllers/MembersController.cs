@@ -29,7 +29,8 @@ namespace AspNetCore.Controllers
         // GET: Members
         public async Task<IActionResult> Index(string? searchString, string? currentFilter, int? pageNumber)
         {
-            var members = from s in _context.Member select s;
+            var members = from s in _context.Member
+                          select s;
 
             if (!String.IsNullOrEmpty(searchString))
             {
@@ -39,13 +40,13 @@ namespace AspNetCore.Controllers
                     {
                         if (!part.Contains(" "))
                         {
-                            members = members.Where(s => s.x.Contains(searchString)
-                                                        || s.y.Contains(searchString)
-                                                        || s.confirmation_date.ToString().Contains(searchString)
-                                                        || s.municipality_code.Contains(searchString)
-                                                        || s.municipality_name.Contains(searchString)
-                                                        || s.age_bracket.Contains(searchString)
-                                                        || s.gender.Contains(searchString));
+                            members = members.Where(s => s.x.Contains(part)
+                                                        || s.y.Contains(part)
+                                                        || s.confirmation_date.ToString().Contains(part)
+                                                        || s.municipality_code.Contains(part)
+                                                        || s.municipality_name.Contains(part)
+                                                        || s.age_bracket.Contains(part)
+                                                        || s.gender.Contains(part));
                         }
                     }
                 }
@@ -75,182 +76,157 @@ namespace AspNetCore.Controllers
                     members = members.OrderBy(s => s.gender);
                     break;
                 default:
-                    members = members.OrderBy(s => s.confirmation_date);
+                    members = members.OrderByDescending(s => s.confirmation_date);
                     break;
             }
-            int pageSize = 100;
+            int pageSize = 15;
             return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
-        // GET: Members/Chart
-        public async Task<IActionResult> Chart(string? sortBy)
+        // GET: Members/Omw
+        public async Task<IActionResult> Omw()
         {
-            var members = from s in _context.Member select s;
+            /* var res_municipality_name2 = from student in _context.Member
+                                          group new { student.municipality_name, student.gender }
+                                               by student.municipality_name into studentGroup
+                                          select new
+                                          {
+                                              Stream = studentGroup.Key,
+                                              GroupScore = studentGroup.Sum(x => x.ToString()),
+                                          };
 
+             foreach (var scr in res_municipality_name2) { Console.WriteLine(string.Format(" {0}- {1}", scr.Name, scr.Gender)); }*/
+
+            /* foreach (var studentGroup in res_municipality_name2)
+            {
+                //getError = getError + ">" + studentGroup.Key;
+                //foreach (var student in studentGroup)
+                //getError = getError + " : " + student.municipality_name + " : " + student.gender + " <br />";
+            }*/
+
+
+            return View();
+        }
+
+        // GET: Members/Chart
+        public async Task<IActionResult> Chart(string? groupBy)
+        {
+            string titleChart = "";
+            string titleX = "";
             string[] setX = new string[0];
-
-            int[] setRes0 = new int[0];
-            int[] setRes1 = new int[0];
-            int[] setRes2 = new int[0];
-
-            int ind = 0;
-
+            string[] setY = new string[0];
             string getX = "";
-            string getRes0 = "";
-            string getRes1 = "";
-            string getRes2 = "";
-            string getTitle = "";
+            string getY = "";
 
-            switch (sortBy)
+            string getError = "";
+
+            switch (groupBy)
             {
                 case "confirmation_date":
-                    foreach (var item in members)
+                    var query_confirmation_date = from s in _context.Member
+                                                  orderby s.confirmation_date
+                                                  group s by s.confirmation_date into g
+                                                  select new
+                                                  {
+                                                      Date = g.Key,
+                                                      Total = g.Count()
+                                                  };
+                    var res_confirmation_date = query_confirmation_date.OrderBy(s => s.Date);
+                    foreach (var item in res_confirmation_date)
                     {
-                        members = members.GroupBy(s => s.confirmation_date).Select(g => g.OrderByDescending(p => p.confirmation_date).FirstOrDefault());
-                        string munName = item.confirmation_date.ToString();
-                        ind = Array.IndexOf(setX, item.confirmation_date);
-                        if (ind == -1)
-                        {
-                            Array.Resize(ref setX, setX.Length + 1);
-                            setX[setX.Length - 1] = item.age_bracket;
-                            Array.Resize(ref setRes0, setRes0.Length + 1);
-                            setRes0[setRes0.Length - 1] = 0;
-                            Array.Resize(ref setRes1, setRes1.Length + 1);
-                            setRes1[setRes1.Length - 1] = 0;
-                            Array.Resize(ref setRes2, setRes2.Length + 1);
-                            setRes2[setRes2.Length - 1] = 0;
-                            ind = setX.Length - 1;
-                        }
-
-                        switch (item.gender)
-                        {
-                            case "Vyras":
-                                ++setRes0[ind];
-                                break;
-                            case "Moteris":
-                                ++setRes1[ind];
-                                break;
-                            case "nenustatyta":
-                            default:
-                                ++setRes2[ind];
-                                break;
-                        }
-
-                        getTitle = "Sort By confirmation Date";
-
-                        getX = "['" + string.Join("','", setX) + "']";
-                        getRes0 = "[" + string.Join(", ", setRes0) + "]";
-                        getRes1 = "[" + string.Join(", ", setRes1) + "]";
-                        getRes2 = "[" + string.Join(", ", setRes2) + "]";
+                        Array.Resize(ref setX, setX.Length + 1);
+                        setX[setX.Length - 1] = item.Date.ToString();
+                        Array.Resize(ref setY, setY.Length + 1);
+                        setY[setY.Length - 1] = item.Total.ToString();
                     }
-
-                    members = members.OrderBy(s => s.confirmation_date);
+                    titleChart = "Group By Confirmation Date";
+                    titleX = "Confirmation dates";
                     break;
                 case "age_bracket":
-                    foreach (var item in members)
+                    var query_age_bracket = from s in _context.Member
+                                            orderby s.age_bracket
+                                            group s by s.age_bracket into g
+                                            select new
+                                            {
+                                                Age = g.Key,
+                                                Total = g.Count()
+                                            };
+                    var res_age_bracket = query_age_bracket.OrderBy(s => s.Age);
+                    foreach (var item in res_age_bracket)
                     {
-                        string munName = "\"" + item.age_bracket + "\"";
-                        ind = Array.IndexOf(setX, item.age_bracket);
-                        if (ind == -1)
-                        {
-                            Array.Resize(ref setX, setX.Length + 1);
-                            setX[setX.Length - 1] = item.age_bracket;
-                            Array.Resize(ref setRes0, setRes0.Length + 1);
-                            setRes0[setRes0.Length - 1] = 0;
-                            Array.Resize(ref setRes1, setRes1.Length + 1);
-                            setRes1[setRes1.Length - 1] = 0;
-                            Array.Resize(ref setRes2, setRes2.Length + 1);
-                            setRes2[setRes2.Length - 1] = 0;
-                            ind = setX.Length - 1;
-                        }
-
-                        switch (item.gender)
-                        {
-                            case "Vyras":
-                                ++setRes0[ind];
-                                break;
-                            case "Moteris":
-                                ++setRes1[ind];
-                                break;
-                            case "nenustatyta":
-                            default:
-                                ++setRes2[ind];
-                                break;
-                        }
-
-                        getTitle = "Sort By Age Bracket";
-
-                        getX = "['" + string.Join("','", setX) + "']";
-                        getRes0 = "[" + string.Join(", ", setRes0) + "]";
-                        getRes1 = "[" + string.Join(", ", setRes1) + "]";
-                        getRes2 = "[" + string.Join(", ", setRes2) + "]";
+                        Array.Resize(ref setX, setX.Length + 1);
+                        setX[setX.Length - 1] = item.Age;
+                        Array.Resize(ref setY, setY.Length + 1);
+                        setY[setY.Length - 1] = item.Total.ToString();
                     }
-
-                    members = members.OrderBy(s => s.age_bracket);
+                    titleChart = "Group By Age Bracket";
+                    titleX = "Age Brackets";
+                    break;
+                case "gender":
+                    var query_gender = from s in _context.Member
+                                       orderby s.gender
+                                       group s by s.gender into g
+                                       select new
+                                       {
+                                           Gender = g.Key,
+                                           Total = g.Count()
+                                       };
+                    var res_gender = query_gender.OrderBy(s => s.Gender);
+                    foreach (var item in res_gender)
+                    {
+                        Array.Resize(ref setX, setX.Length + 1);
+                        setX[setX.Length - 1] = item.Gender;
+                        Array.Resize(ref setY, setY.Length + 1);
+                        setY[setY.Length - 1] = item.Total.ToString();
+                    }
+                    titleChart = "Group By Gender";
+                    titleX = "Gender";
                     break;
                 case "municipality_name":
                 default:
-                    foreach (var item in members)
+                    var query_municipality_name = from s in _context.Member
+                                                  orderby s.municipality_name
+                                                  group s by s.municipality_name into g
+                                                  select new
+                                                  {
+                                                      Name = g.Key,
+                                                      Total = g.Count()
+                                                  };
+                    var res_municipality_name = query_municipality_name.OrderBy(s => s.Name);
+                    foreach (var item in res_municipality_name)
                     {
-                        string munName = "\"" + item.municipality_name + "\"";
-                        ind = Array.IndexOf(setX, item.municipality_name);
-                        if (ind == -1)
-                        {
-                            Array.Resize(ref setX, setX.Length + 1);
-                            setX[setX.Length - 1] = item.municipality_name;
-                            Array.Resize(ref setRes0, setRes0.Length + 1);
-                            setRes0[setRes0.Length - 1] = 0;
-                            Array.Resize(ref setRes1, setRes1.Length + 1);
-                            setRes1[setRes1.Length - 1] = 0;
-                            Array.Resize(ref setRes2, setRes2.Length + 1);
-                            setRes2[setRes2.Length - 1] = 0;
-                            ind = setX.Length - 1;
-                        }
-
-                        switch (item.gender)
-                        {
-                            case "Vyras":
-                                ++setRes0[ind];
-                                break;
-                            case "Moteris":
-                                ++setRes1[ind];
-                                break;
-                            case "nenustatyta":
-                            default:
-                                ++setRes2[ind];
-                                break;
-                        }
-
-                        getTitle = "Sort By Municipality Name";
-
-                        getX = "['" + string.Join("','", setX) + "']";
-                        getRes0 = "[" + string.Join(", ", setRes0) + "]";
-                        getRes1 = "[" + string.Join(", ", setRes1) + "]";
-                        getRes2 = "[" + string.Join(", ", setRes2) + "]";
+                        Array.Resize(ref setX, setX.Length + 1);
+                        setX[setX.Length - 1] = item.Name;
+                        Array.Resize(ref setY, setY.Length + 1);
+                        setY[setY.Length - 1] = item.Total.ToString();
                     }
-
-                    members = members.OrderBy(s => s.municipality_name);
+                    titleChart = "Group By Municipality Name";
+                    titleX = "Municipality Names";
                     break;
             }
-            ViewData["getTitle"] = "'" + getTitle + "'";
-            ViewData["getX"] = getX;
-            ViewData["getRes0"] = getRes0;
-            ViewData["getRes1"] = getRes1;
-            ViewData["getRes2"] = getRes2;
 
-            //return View(await _context.Member.ToListAsync());
+            ViewData["getError"] = getY;
+
+            getX = "['" + string.Join("','", setX) + "']";
+            getY = "[" + string.Join(", ", setY) + "]";
+
+            ViewData["getTitle"] = "'" + titleChart + "'";
+            ViewData["getTitleX"] = "'" + titleX + "'";
+            ViewData["getX"] = getX;
+            ViewData["getY"] = getY;
+
             return View();
         }
 
         [Authorize]
-        public IActionResult DbUpload()
+        public IActionResult Database()
         {
             return View();
         }
 
         [HttpPost]
         [Authorize]
-        public IActionResult DbUpload(IFormFile files)
+        public IActionResult DatabaseUpload(IFormFile files)
         {
             using (_context) using (var transaction = _context.Database.BeginTransaction())
             {
@@ -270,7 +246,7 @@ namespace AspNetCore.Controllers
                 _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers OFF");
                 transaction.Commit();
             }
-            return Redirect("Members");
+            return Redirect("Database");
         }
 
         // GET: Members/Details/5
@@ -287,15 +263,16 @@ namespace AspNetCore.Controllers
             {
                 return NotFound();
             }
-
-            return View(member);
+            return PartialView(member);
+            //return View(member);
         }
 
         // GET: Members/Create
         [Authorize]
         public IActionResult Create()
         {
-            return View();
+            return PartialView();
+            //return View();
         }
 
         // POST: Members/Create
@@ -312,6 +289,7 @@ namespace AspNetCore.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
+            //return PartialView(member);
             return View(member);
         }
 
@@ -329,7 +307,8 @@ namespace AspNetCore.Controllers
             {
                 return NotFound();
             }
-            return View(member);
+            return PartialView(member);
+            //return View(member);
         }
 
         // POST: Members/Edit/5
@@ -384,7 +363,8 @@ namespace AspNetCore.Controllers
                 return NotFound();
             }
 
-            return View(member);
+            return PartialView(member);
+            //return View(member);
         }
 
         [Authorize]
