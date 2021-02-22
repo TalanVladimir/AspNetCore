@@ -38,17 +38,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Members" asp-action="Omw">Omw</a>
-                        </li>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
             </div>
             @*<div id="inputForm">
-                <input type="text" id="message" />
-                <input type="button" id="sendBtn" value="Send" />
-            </div>*@
+                    <input type="text" id="message" />
+                    <input type="button" id="sendBtn" value="Send" />
+                </div>*@
         </nav>
     </header>
     @*<div id="chatroom" style="display:block;width:100px;height:500px;z-index:1000;position:fixed;top:0px;left:0px;padding:10px;"></div>*@
@@ -64,30 +61,30 @@
         </div>
     </footer>
     @await RenderSectionAsync("Scripts", required: false)
-    <script>
-        const hubConnection = new signalR.HubConnectionBuilder()
-            .withUrl("/notify")
-            .build();
+    @*   <script>
+            const hubConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/notify")
+                .build();
 
-        hubConnection.on("Send", function (data) {
-            let elem = document.createElement("p");
-            elem.appendChild(document.createTextNode(data));
-            let firstElem = document.getElementById("chatroom").firstChild;
-            document.getElementById("chatroom").insertBefore(elem, firstElem);
+            hubConnection.on("Send", function (data) {
+                let elem = document.createElement("p");
+                elem.appendChild(document.createTextNode(data));
+                let firstElem = document.getElementById("chatroom").firstChild;
+                document.getElementById("chatroom").insertBefore(elem, firstElem);
 
-            const message = JSON.stringify({
-                message: 'Hello from iframe',
-                date: Date.now(),
+                const message = JSON.stringify({
+                    message: 'Hello from iframe',
+                    date: Date.now(),
+                });
+                window.parent.postMessage(message, '*');
             });
-            window.parent.postMessage(message, '*');
-        });
 
-        document.getElementById("sendBtn").addEventListener("click", function (e) {
-            let message = document.getElementById("message").value;
-            hubConnection.invoke("Send", message);
-        });
+            document.getElementById("sendBtn").addEventListener("click", function (e) {
+                let message = document.getElementById("message").value;
+                hubConnection.invoke("Send", message);
+            });
 
-        hubConnection.start();
-    </script>
+            hubConnection.start();
+        </script>*@
 </body>
 </html>

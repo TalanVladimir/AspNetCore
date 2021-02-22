@@ -4,7 +4,7 @@
     ViewData["Title"] = "Chart";
 }
 
-<h1>Chart</h1>
+<h1>@ViewData["Title"]</h1>
 
 <script src="https://code.highcharts.com/highcharts.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
@@ -12,14 +12,11 @@
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
 <p>
-    <a asp-action="Chart" asp-route-groupBy="municipality_name">By municipality (default)</a> |
-    <a asp-action="Chart" asp-route-groupBy="confirmation_date">By confirmation date</a> |
-    <a asp-action="Chart" asp-route-groupBy="age_bracket">By age bracket</a> |
-    <a asp-action="Chart" asp-route-groupBy="gender">By gender</a>
-</p>
-
-<p>
-    @ViewData["getError"]
+    <a asp-action="Chart" asp-route-groupBy="municipality_name">By Municipality (default)</a> |
+    <a asp-action="Chart" asp-route-groupBy="confirmation_date">By Confirmation Date</a> |
+    <a asp-action="Chart" asp-route-groupBy="age_bracket">By Age Bracket</a> |
+    <a asp-action="Chart" asp-route-groupBy="gender">By Gender</a> |
+    <a asp-action="Chart" asp-route-groupBy="age_gender">By Age and Gender</a>
 </p>
 
 <figure class="highcharts-figure">
@@ -29,7 +26,7 @@
 <script>
     Highcharts.chart('container', {
         chart: {
-            type: 'line'
+            type: 'column'
         },
         title: {
             text: @Html.Raw(ViewData["getTitle"])
@@ -53,9 +50,6 @@
                 enableMouseTracking: false
             }
         },
-        series: [{
-            name: @Html.Raw(ViewData["getTitleX"]),
-            data: @ViewData["getY"]
-        }]
+        @Html.Raw(ViewData["series"])
     });
 </script>

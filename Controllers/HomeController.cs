@@ -21,8 +21,8 @@ namespace AspNetCore.Controllers
 
         public IActionResult Index()
         {
-            return Redirect("Members");
             //return View();
+            return Redirect("Members/Chart?groupBy=age_gender");
         }
 
         public IActionResult Privacy()

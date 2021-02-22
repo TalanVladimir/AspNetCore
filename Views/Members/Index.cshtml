@@ -4,20 +4,15 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1>@ViewData["Title"]</h1>
 
 <div id="modDialog" class="modal fade">
     <div id="dialogContent" class="modal-dialog"></div>
 </div>
 
-<p>
-    <a class="btn btn-primary event-create" asp-action="Create">Create</a>
-</p>
-
 <form asp-controller="Members" asp-action="Index" method="get">
     <p>
-        Title: <input type="text" name="searchString" />
-        <input type="submit" value="Filter" />
+        Search: <input class="form-control" style="width:300px" type="text" name="searchString" />
     </p>
 </form>
 
@@ -45,7 +40,8 @@
             <th>
                 <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="gender">gender</a>
             </th>
-            <th></th>
+            <th>
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -74,9 +70,11 @@
                     @Html.DisplayFor(modelItem => item.gender)
                 </td>
                 <td>
-                    <a class="event-edit" asp-action="Edit" asp-route-id="@item.OID">Edit</a> |
-                    <a class="event-details" asp-action="Details" asp-controller="Members" asp-route-id="@item.OID">Details</a> |
-                    <a class="event-delete" asp-action="Delete" asp-route-id="@item.OID">Delete</a>
+                    @if (this.User.Identity.IsAuthenticated)
+                    {<a class="event-edit" asp-action="Edit" asp-route-id="@item.OID">Edit</a><br />}
+                    <a class="event-details" asp-action="Details" asp-controller="Members" asp-route-id="@item.OID">Details</a>
+                    @if (this.User.Identity.IsAuthenticated)
+                    {<br /><a class="event-delete" asp-action="Delete" asp-route-id="@item.OID">Delete</a>}
                 </td>
             </tr>
         }
@@ -89,7 +87,6 @@
         $(function () {
             $.ajaxSetup({ cache: false });
             $(".event-create").click(function (e) {
-
                 e.preventDefault();
                 $.get(this.href, function (data) {
                     $('#dialogContent').html(data);
@@ -97,7 +94,6 @@
                 });
             });
             $(".event-edit").click(function (e) {
-
                 e.preventDefault();
                 $.get(this.href, function (data) {
                     $('#dialogContent').html(data);
@@ -105,7 +101,6 @@
                 });
             });
             $(".event-details").click(function (e) {
-
                 e.preventDefault();
                 $.get(this.href, function (data) {
                     $('#dialogContent').html(data);
@@ -113,7 +108,6 @@
                 });
             });
             $(".event-delete").click(function (e) {
-
                 e.preventDefault();
                 $.get(this.href, function (data) {
                     $('#dialogContent').html(data);
@@ -143,3 +137,8 @@
    class="btn btn-default @nextDisabled">
     Next
 </a>
+
+@if (this.User.Identity.IsAuthenticated)
+{
+    <a class="btn btn-primary event-create" asp-action="Create">Create</a>
+}

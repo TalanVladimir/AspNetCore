@@ -20,10 +20,12 @@ namespace AspNetCore.Controllers
     public class MembersController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public MembersController(ApplicationDbContext context)
+        public MembersController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
         {
             _context = context;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         // GET: Members
@@ -79,33 +81,8 @@ namespace AspNetCore.Controllers
                     members = members.OrderByDescending(s => s.confirmation_date);
                     break;
             }
-            int pageSize = 15;
+            int pageSize = 10;
             return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? 1, pageSize));
-        }
-
-        // GET: Members/Omw
-        public async Task<IActionResult> Omw()
-        {
-            /* var res_municipality_name2 = from student in _context.Member
-                                          group new { student.municipality_name, student.gender }
-                                               by student.municipality_name into studentGroup
-                                          select new
-                                          {
-                                              Stream = studentGroup.Key,
-                                              GroupScore = studentGroup.Sum(x => x.ToString()),
-                                          };
-
-             foreach (var scr in res_municipality_name2) { Console.WriteLine(string.Format(" {0}- {1}", scr.Name, scr.Gender)); }*/
-
-            /* foreach (var studentGroup in res_municipality_name2)
-            {
-                //getError = getError + ">" + studentGroup.Key;
-                //foreach (var student in studentGroup)
-                //getError = getError + " : " + student.municipality_name + " : " + student.gender + " <br />";
-            }*/
-
-
-            return View();
         }
 
         // GET: Members/Chart
@@ -118,8 +95,7 @@ namespace AspNetCore.Controllers
             string getX = "";
             string getY = "";
 
-            string getError = "";
-
+            bool defView = true;
             switch (groupBy)
             {
                 case "confirmation_date":
@@ -182,6 +158,94 @@ namespace AspNetCore.Controllers
                     titleChart = "Group By Gender";
                     titleX = "Gender";
                     break;
+                case "age_gender":
+                    defView = false;
+                    var query_age_gender = from r in _context.Member
+                                           group r by new { r.age_bracket, r.gender } into g
+                                           orderby g.Key.age_bracket
+                                           select new { Age = g.Key.age_bracket, Gender = g.Key.gender, Count = g.Count() };
+
+                    var all_gender = from s in _context.Member
+                                     orderby s.gender
+                                     group s by s.gender into g
+                                     select new
+                                     {
+                                         Gender = g.Key,
+                                         Count = g.Key.Count()
+                                     };
+
+                    int[] temp = new int[0];
+                    string[] gender = new string[0];
+                    string[] rez = new string[0];
+                    foreach (var item in all_gender)
+                    {
+                        Array.Resize(ref gender, gender.Length + 1);
+                        gender[gender.Length - 1] = item.Gender;
+                        Array.Resize(ref temp, temp.Length + 1);
+                        temp[temp.Length - 1] = 0;
+                        Array.Resize(ref rez, rez.Length + 1);
+                        rez[rez.Length - 1] = "";
+
+                        titleX = titleX + "\"" + item.Gender + "\"";
+                    }
+                    int count = rez.Length;
+
+                    string tempTitle = null;
+
+                    int agCount = 0;
+                    int vCount = query_age_gender.Count();
+                    foreach (var item in query_age_gender)
+                    {
+                        ++agCount;
+                        string tAge = item.Age;
+                        string tGender = item.Gender;
+                        int tCount = item.Count;
+                        int ind = Array.IndexOf(gender, tGender);
+
+                        if ((tempTitle != item.Age) && (agCount != 1))
+                        {
+                            Array.Resize(ref setX, setX.Length + 1);
+                            setX[setX.Length - 1] = tAge;
+                            for (int i = 0; i < count; i++)
+                            {
+                                if (string.IsNullOrEmpty(rez[i]))
+                                    rez[i] = temp[i].ToString();
+                                else
+                                    rez[i] = rez[i] + "," + temp[i].ToString();
+                                temp[i] = 0;
+                            }
+                        }
+                        temp[ind] = temp[ind] + tCount;
+
+                        if (agCount == vCount)
+                        {
+                            for (int i = 0; i < count; i++)
+                            {
+                                rez[i] = rez[i] + "," + temp[i].ToString();
+                                Array.Resize(ref setX, setX.Length + 1);
+                                setX[setX.Length - 1] = tAge;
+                            }
+                        }
+                        tempTitle = tAge;
+                    }
+
+                    string viewData = "series:[";
+                    for (int i = 0; i < count; i++)
+                    {
+                        if (i != 0)
+                        {
+                            viewData = viewData + ",";
+                        }
+                        viewData = viewData + "{" + "name: '" + gender[i] + "',"
+                                             + "data: [" + rez[i]
+                                             + "]}";
+
+                    }
+                    viewData = viewData + "]";
+                    titleChart = "Group By Age and Gender";
+
+                    ViewData["series"] = viewData;
+                    break;
                 case "municipality_name":
                 default:
                     var query_municipality_name = from s in _context.Member
@@ -206,15 +270,21 @@ namespace AspNetCore.Controllers
             }
 
             ViewData["getError"] = getY;
-
             getX = "['" + string.Join("','", setX) + "']";
             getY = "[" + string.Join(", ", setY) + "]";
-
             ViewData["getTitle"] = "'" + titleChart + "'";
             ViewData["getTitleX"] = "'" + titleX + "'";
             ViewData["getX"] = getX;
             ViewData["getY"] = getY;
 
+            if (defView)
+            {
+                ViewData["series"] = "series:"
+                                    + "[{"
+                                    + "name:" + ViewData["getTitleX"] + ","
+                                    + "data:" + ViewData["getY"]
+                                    + "}]";
+            }
             return View();
         }
 
@@ -226,7 +296,7 @@ namespace AspNetCore.Controllers
 
         [HttpPost]
         [Authorize]
-        public IActionResult DatabaseUpload(IFormFile files)
+        public IActionResult DatabaseUpload(IFormFile? files)
         {
             using (_context) using (var transaction = _context.Database.BeginTransaction())
             {
@@ -289,8 +359,8 @@ namespace AspNetCore.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            //return PartialView(member);
-            return View(member);
+            return PartialView(member);
+            //return View(member);
         }
 
         // GET: Members/Edit/5
