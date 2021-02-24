@@ -1,0 +1,16 @@
+﻿@{
+    ViewData["Title"] = "Confirm Database Clear";
+}
+
+<div class="modal-dialog-centered" style="width:605px">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h4>@ViewData["Title"]</h4><button class="close" data-dismiss="modal" area-hidden="true">X</button>
+        </div>
+        <div class="modal-body">
+            <form asp-action="DatabaseClear" asp-route-confirm="delete">
+                <input type="submit" value="Delete" class="btn btn-danger" />
+            </form>
+        </div>
+    </div>
+</div>

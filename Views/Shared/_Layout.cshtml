@@ -12,7 +12,6 @@
     <script src="~/js/vue/dist/vue.min.js"></script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
@@ -42,13 +41,8 @@
                     <partial name="_LoginPartial" />
                 </div>
             </div>
-            @*<div id="inputForm">
-                    <input type="text" id="message" />
-                    <input type="button" id="sendBtn" value="Send" />
-                </div>*@
         </nav>
     </header>
-    @*<div id="chatroom" style="display:block;width:100px;height:500px;z-index:1000;position:fixed;top:0px;left:0px;padding:10px;"></div>*@
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -60,31 +54,37 @@
             &copy; 2021 - AspNetCore - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
         </div>
     </footer>
+
+    @*<div class="container">
+            <div class="row">&nbsp;</div>
+            <div class="row">
+                <div class="col-2">User</div>
+                <div class="col-4"><input type="text" value="User" id="userInput" /></div>
+            </div>
+            <div class="row">
+                <div class="col-2">Message</div>
+                <div class="col-4"><input type="text" value="Message" id="messageInput" /></div>
+            </div>
+            <div class="row">&nbsp;</div>
+            <div class="row">
+                <div class="col-6">
+                    <input type="button" id="sendButton" value="Send Message" />
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <hr />
+            </div>
+        </div>*@
+    <div class="row">
+        <div class="col-6">
+            <ul id="messagesList"></ul>
+        </div>
+    </div>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/notifyHub.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-    @*   <script>
-            const hubConnection = new signalR.HubConnectionBuilder()
-                .withUrl("/notify")
-                .build();
-
-            hubConnection.on("Send", function (data) {
-                let elem = document.createElement("p");
-                elem.appendChild(document.createTextNode(data));
-                let firstElem = document.getElementById("chatroom").firstChild;
-                document.getElementById("chatroom").insertBefore(elem, firstElem);
-
-                const message = JSON.stringify({
-                    message: 'Hello from iframe',
-                    date: Date.now(),
-                });
-                window.parent.postMessage(message, '*');
-            });
-
-            document.getElementById("sendBtn").addEventListener("click", function (e) {
-                let message = document.getElementById("message").value;
-                hubConnection.invoke("Send", message);
-            });
-
-            hubConnection.start();
-        </script>*@
 </body>
 </html>

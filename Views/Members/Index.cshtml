@@ -20,25 +20,19 @@
     <thead>
         <tr>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="x">x</a>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="confirmation_date">Confirmation Date</a>
             </th>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="y">y</a>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_code">Municipality Code</a>
             </th>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="confirmation_date">confirmation_date</a>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_name">Municipality Name</a>
             </th>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_code">municipality_code</a>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="age_bracket">Age Bracket</a>
             </th>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_name">municipality_name</a>
-            </th>
-            <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="age_bracket">age_bracket</a>
-            </th>
-            <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="gender">gender</a>
+                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="gender">Gender</a>
             </th>
             <th>
             </th>
@@ -48,12 +42,6 @@
         @foreach (var item in Model)
         {
             <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.x)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.y)
-                </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.confirmation_date)
                 </td>
@@ -71,10 +59,10 @@
                 </td>
                 <td>
                     @if (this.User.Identity.IsAuthenticated)
-                    {<a class="event-edit" asp-action="Edit" asp-route-id="@item.OID">Edit</a><br />}
-                    <a class="event-details" asp-action="Details" asp-controller="Members" asp-route-id="@item.OID">Details</a>
+                    {<a class="btn btn-primary event-edit" asp-action="Edit" asp-route-id="@item.OID">Edit</a>}
+                    <a class="btn btn-secondary event-details" asp-action="Details" asp-controller="Members" asp-route-id="@item.OID">Details</a>
                     @if (this.User.Identity.IsAuthenticated)
-                    {<br /><a class="event-delete" asp-action="Delete" asp-route-id="@item.OID">Delete</a>}
+                    {<a class="btn btn-danger event-delete" asp-action="Delete" asp-route-id="@item.OID">Delete</a>}
                 </td>
             </tr>
         }
@@ -140,5 +128,5 @@
 
 @if (this.User.Identity.IsAuthenticated)
 {
-    <a class="btn btn-primary event-create" asp-action="Create">Create</a>
+    <a class="btn btn-success event-create" asp-action="Create">Create</a>
 }

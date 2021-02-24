@@ -1,11 +1,13 @@
 using AspNetCore.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace AspNetCore
 {
@@ -21,7 +23,13 @@ namespace AspNetCore
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSignalR(); // SignalR
+            //services.AddSignalR(); 
+            services.AddSignalR(hubOptions =>
+            {
+                hubOptions.ClientTimeoutInterval = TimeSpan.FromMinutes(1);
+                hubOptions.EnableDetailedErrors = true;
+                hubOptions.KeepAliveInterval = TimeSpan.FromMinutes(1);
+            }).AddJsonProtocol();
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
@@ -30,6 +38,7 @@ namespace AspNetCore
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
+            services.AddHttpContextAccessor();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,9 +67,15 @@ namespace AspNetCore
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    //pattern: "{controller=Home}/{action=Index}/{id?}");
+                    // todo startup event
+                    pattern: "{controller=Members}/{action=Database}/{id?}");
                 endpoints.MapRazorPages();
-                endpoints.MapHub<NotificationHub>("/notify");
+                //endpoints.MapHub<NotificationHub>("/notifyHub");
+                endpoints.MapHub<NotificationHub>("/notifyHub", options =>
+                {
+                    options.Transports = HttpTransportType.LongPolling; // you may also need this
+                });
             });
         }
     }

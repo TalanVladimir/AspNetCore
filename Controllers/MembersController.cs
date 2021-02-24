@@ -21,11 +21,13 @@ namespace AspNetCore.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
-        public MembersController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
+        public MembersController(ApplicationDbContext context, IHttpContextAccessor httpContextAccessor, IHubContext<NotificationHub> hubcontext)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _hubContext = hubcontext;
         }
 
         // GET: Members
@@ -42,9 +44,7 @@ namespace AspNetCore.Controllers
                     {
                         if (!part.Contains(" "))
                         {
-                            members = members.Where(s => s.x.Contains(part)
-                                                        || s.y.Contains(part)
-                                                        || s.confirmation_date.ToString().Contains(part)
+                            members = members.Where(s => s.confirmation_date.ToString().Contains(part)
                                                         || s.municipality_code.Contains(part)
                                                         || s.municipality_name.Contains(part)
                                                         || s.age_bracket.Contains(part)
@@ -81,7 +81,7 @@ namespace AspNetCore.Controllers
                     members = members.OrderByDescending(s => s.confirmation_date);
                     break;
             }
-            int pageSize = 10;
+            int pageSize = 5;
             return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
@@ -300,23 +300,50 @@ namespace AspNetCore.Controllers
         {
             using (_context) using (var transaction = _context.Database.BeginTransaction())
             {
-                CsvFileDescription csvFileDescription = new CsvFileDescription
+                if (files != null)
                 {
-                    SeparatorChar = ',',
-                    FirstLineHasColumnNames = true
-                };
-                CsvContext csvContext = new CsvContext();
-                StreamReader streamReader = new StreamReader(files.OpenReadStream());
-                IEnumerable<Member> list = csvContext.Read<Member>(streamReader, csvFileDescription);
+                    CsvFileDescription csvFileDescription = new CsvFileDescription
+                    {
+                        SeparatorChar = ',',
+                        FirstLineHasColumnNames = true
+                    };
+                    CsvContext csvContext = new CsvContext();
+                    StreamReader streamReader = new StreamReader(files.OpenReadStream());
+                    IEnumerable<Member> list = csvContext.Read<Member>(streamReader, csvFileDescription);
 
-                //_context.Member.UpdateRange(list);
-                _context.Member.AddRange(list);
-                _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers ON");
-                _context.SaveChanges();
-                _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers OFF");
-                transaction.Commit();
+                    //_context.Member.UpdateRange(list);
+                    _context.Member.AddRange(list);
+                    _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers ON");
+                    _context.SaveChanges();
+                    _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers OFF");
+                    transaction.Commit();
+                }
             }
             return Redirect("Database");
+        }
+
+        [Authorize]
+        public async Task<IActionResult> DatabaseClear(string? confirm)
+        {
+            if (!string.IsNullOrEmpty(confirm))
+            {
+                if (confirm.Contains("delete"))
+                {
+                    using (_context) using (var transaction = _context.Database.BeginTransaction())
+                    {
+                        _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers ON");
+                        foreach (Member member in _context.Member)
+                        {
+                            _context.Member.Remove(member);
+                        }
+                        _context.SaveChanges();
+                        _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers OFF");
+                        transaction.Commit();
+                    }
+                    return Redirect("Database");
+                }
+            }
+            return PartialView();
         }
 
         // GET: Members/Details/5
@@ -351,12 +378,14 @@ namespace AspNetCore.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create([Bind("OID,x,y,case_code,confirmation_date,municipality_code,municipality_name,age_bracket,gender")] Member member)
+        public async Task<IActionResult> Create([Bind("OID,x,y,case_code,municipality_code,municipality_name,age_bracket,gender")] Member member)
         {
             if (ModelState.IsValid)
             {
+                member.confirmation_date = DateTime.Now;
                 _context.Add(member);
                 await _context.SaveChangesAsync();
+                await this._hubContext.Clients.All.SendAsync("ReceiveMessage", member.gender, member.confirmation_date.ToString());
                 return RedirectToAction(nameof(Index));
             }
             return PartialView(member);

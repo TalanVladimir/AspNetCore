@@ -6,20 +6,34 @@
 
 <h1>@ViewData["Title"]</h1>
 
-<div class="row">
-    <div class="col-md-5">
-        <form method="post" enctype="multipart/form-data" asp-controller="Members" asp-action="DatabaseUpload">
-            <div class="form-group">
-                <div class="col-md-10">
-                    <p>Upload file</p>
-                    <input class="form-control" name="files" type="file" />
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-md-10">
-                    <input class="btn btn-success" type="submit" value="Upload" />
-                </div>
-            </div>
-        </form>
-    </div>
+<div id="modDialog" class="modal fade">
+    <div id="dialogContent" class="modal-dialog"></div>
 </div>
+
+<form method="post" enctype="multipart/form-data" asp-controller="Members" asp-action="DatabaseUpload">
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col"><input class="form-control" name="files" type="file" /></th>
+                <th scope="col"><input class="btn btn-success" type="submit" value="Upload File" /></th>
+                <th scope="col"><a class="btn btn-danger event-clear" asp-action="DatabaseClear"><i class="fa fa-trash"></i>Drop Database</a></th>
+            </tr>
+        </thead>
+    </table>
+</form>
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(function () {
+            $.ajaxSetup({ cache: false });
+            $(".event-clear").click(function (e) {
+                e.preventDefault();
+                $.get(this.href, function (data) {
+                    $('#dialogContent').html(data);
+                    $('#modDialog').modal('show');
+                });
+            });
+        })
+    </script>
+}

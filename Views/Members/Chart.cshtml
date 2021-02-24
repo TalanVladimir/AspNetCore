@@ -12,10 +12,10 @@
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
 <p>
-    <a asp-action="Chart" asp-route-groupBy="municipality_name">By Municipality (default)</a> |
-    <a asp-action="Chart" asp-route-groupBy="confirmation_date">By Confirmation Date</a> |
-    <a asp-action="Chart" asp-route-groupBy="age_bracket">By Age Bracket</a> |
-    <a asp-action="Chart" asp-route-groupBy="gender">By Gender</a> |
+    <a asp-action="Chart" asp-route-groupBy="@Html.DisplayNameFor(model => model.municipality_name)">By Municipality (default)</a> |
+    <a asp-action="Chart" asp-route-groupBy="@Html.DisplayNameFor(model => model.confirmation_date)">By Confirmation Date</a> |
+    <a asp-action="Chart" asp-route-groupBy="@Html.DisplayNameFor(model => model.age_bracket)">By Age Bracket</a> |
+    <a asp-action="Chart" asp-route-groupBy="@Html.DisplayNameFor(model => model.gender)">By Gender</a> |
     <a asp-action="Chart" asp-route-groupBy="age_gender">By Age and Gender</a>
 </p>
 
