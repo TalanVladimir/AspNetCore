@@ -14,6 +14,8 @@ using System.IO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.AspNetCore.SignalR;
+using CsvHelper.Configuration;
+using CsvHelper;
 
 namespace AspNetCore.Controllers
 {
@@ -81,7 +83,7 @@ namespace AspNetCore.Controllers
                     members = members.OrderByDescending(s => s.confirmation_date);
                     break;
             }
-            int pageSize = 5;
+            int pageSize = 10;
             return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
@@ -307,7 +309,7 @@ namespace AspNetCore.Controllers
                         SeparatorChar = ',',
                         FirstLineHasColumnNames = true
                     };
-                    CsvContext csvContext = new CsvContext();
+                    LINQtoCSV.CsvContext csvContext = new LINQtoCSV.CsvContext();
                     StreamReader streamReader = new StreamReader(files.OpenReadStream());
                     IEnumerable<Member> list = csvContext.Read<Member>(streamReader, csvFileDescription);
 
@@ -320,6 +322,34 @@ namespace AspNetCore.Controllers
                 }
             }
             return Redirect("Database");
+        }
+
+        [Authorize]
+        public async Task<IActionResult> DatabaseDownload(string? confirm)
+        {
+            if (!string.IsNullOrEmpty(confirm))
+            {
+                if (confirm.Contains("download"))
+                {
+                    var members = from s in _context.Member
+                                  select s;
+                    members = members.OrderBy(s => s.OID);
+                    var cc = new CsvConfiguration(new System.Globalization.CultureInfo("en-US"));
+                    using (var ms = new MemoryStream())
+                    {
+                        using (var sw = new StreamWriter(stream: ms, encoding: new UTF8Encoding(true)))
+                        {
+                            using (var cw = new CsvWriter(sw, cc))
+                            {
+                                cw.WriteRecords(members);
+                            }
+                            return File(ms.ToArray(), "text/csv", $"export_{DateTime.UtcNow.Ticks}.csv");
+                        }
+                    }
+                    return Redirect("Database");
+                }
+            }
+            return PartialView();
         }
 
         [Authorize]

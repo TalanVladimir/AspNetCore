@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Confirm Database Clear";
+    ViewData["Title"] = "Confirm Database Download";
 }
 
 <div class="modal-dialog-centered" style="width:605px">
@@ -8,8 +8,8 @@
             <h4>@ViewData["Title"]</h4><button class="close" data-dismiss="modal" area-hidden="true">X</button>
         </div>
         <div class="modal-body">
-            <form asp-action="DatabaseClear" asp-route-confirm="delete">
-                <input type="submit" value="Drop Database" class="btn btn-danger" />
+            <form asp-action="DatabaseDownload" asp-route-confirm="download">
+                <input type="submit" value="Download Database" class="btn btn-primary" />
             </form>
         </div>
     </div>

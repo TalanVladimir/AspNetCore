@@ -65,13 +65,15 @@ namespace AspNetCore
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapControllerRoute(
+                endpoints.MapControllerRoute
+                (
                     name: "default",
-                    //pattern: "{controller=Home}/{action=Index}/{id?}");
                     // todo startup event
-                    pattern: "{controller=Members}/{action=Database}/{id?}");
+                    //pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Members}/{action=Index}/{id?}"
+                );
+
                 endpoints.MapRazorPages();
-                //endpoints.MapHub<NotificationHub>("/notifyHub");
                 endpoints.MapHub<NotificationHub>("/notifyHub", options =>
                 {
                     options.Transports = HttpTransportType.LongPolling; // you may also need this

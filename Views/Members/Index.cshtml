@@ -59,52 +59,15 @@
                 </td>
                 <td>
                     @if (this.User.Identity.IsAuthenticated)
-                    {<a class="btn btn-primary event-edit" asp-action="Edit" asp-route-id="@item.OID">Edit</a>}
-                    <a class="btn btn-secondary event-details" asp-action="Details" asp-controller="Members" asp-route-id="@item.OID">Details</a>
+                    {<a class="btn btn-primary event" asp-action="Edit" asp-route-id="@item.OID">Edit</a>}
+                    <a class="btn btn-secondary event" asp-action="Details" asp-controller="Members" asp-route-id="@item.OID">Details</a>
                     @if (this.User.Identity.IsAuthenticated)
-                    {<a class="btn btn-danger event-delete" asp-action="Delete" asp-route-id="@item.OID">Delete</a>}
+                    {<a class="btn btn-danger event" asp-action="Delete" asp-route-id="@item.OID">Delete</a>}
                 </td>
             </tr>
         }
     </tbody>
 </table>
-
-@section scripts
-{
-    <script type="text/javascript">
-        $(function () {
-            $.ajaxSetup({ cache: false });
-            $(".event-create").click(function (e) {
-                e.preventDefault();
-                $.get(this.href, function (data) {
-                    $('#dialogContent').html(data);
-                    $('#modDialog').modal('show');
-                });
-            });
-            $(".event-edit").click(function (e) {
-                e.preventDefault();
-                $.get(this.href, function (data) {
-                    $('#dialogContent').html(data);
-                    $('#modDialog').modal('show');
-                });
-            });
-            $(".event-details").click(function (e) {
-                e.preventDefault();
-                $.get(this.href, function (data) {
-                    $('#dialogContent').html(data);
-                    $('#modDialog').modal('show');
-                });
-            });
-            $(".event-delete").click(function (e) {
-                e.preventDefault();
-                $.get(this.href, function (data) {
-                    $('#dialogContent').html(data);
-                    $('#modDialog').modal('show');
-                });
-            });
-        })
-    </script>
-}
 
 @{
     var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
@@ -128,5 +91,5 @@
 
 @if (this.User.Identity.IsAuthenticated)
 {
-    <a class="btn btn-success event-create" asp-action="Create">Create</a>
+    <a class="btn btn-success event" asp-action="Create">Create</a>
 }
