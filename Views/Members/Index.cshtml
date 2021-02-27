@@ -1,4 +1,7 @@
-﻿@model MembersPaginatedList<AspNetCore.Models.Member>
+﻿@*@model IEnumerable<AspNetCore.Models.Member>*@
+@model PagedList.IPagedList<AspNetCore.Models.Member>
+@using PagedList.Mvc;
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
 
 @{
     ViewData["Title"] = "Index";
@@ -10,29 +13,41 @@
     <div id="dialogContent" class="modal-dialog"></div>
 </div>
 
-<form asp-controller="Members" asp-action="Index" method="get">
+@*<form asp-controller="Members" asp-action="Index" method="get">
+        <p>
+            Search: <input class="form-control" style="width:300px" type="text" name="searchString" />
+        </p>
+    </form>*@
+@using (Html.BeginForm("Index", "Member", FormMethod.Get))
+{
     <p>
-        Search: <input class="form-control" style="width:300px" type="text" name="searchString" />
+        Find by name: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
+        <input type="submit" value="Search" />
     </p>
-</form>
+}
 
 <table class="table">
     <thead>
         <tr>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="confirmation_date">Confirmation Date</a>
+                @*@Html.ActionLink(@Html.DisplayNameFor(model => model.confirmation_date), "Index", new { sortOrder = ViewBag.DateSortParm })*@
+                @Html.ActionLink("Confirmation Date", "Index", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
             </th>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_code">Municipality Code</a>
+                Code
+                @*<a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_code">@Html.DisplayNameFor(model => model.case_code)</a>*@
             </th>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_name">Municipality Name</a>
+                @Html.ActionLink("Municipality Name", "Index", new { sortOrder = ViewBag.NameSortParm, currentFilter = ViewBag.CurrentFilter })
+                @*<a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_name">@Html.DisplayNameFor(model => model.municipality_name)</a>*@
             </th>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="age_bracket">Age Bracket</a>
+                Age
+                @*<a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="age_bracket">@Html.DisplayNameFor(model => model.age_bracket)</a>*@
             </th>
             <th>
-                <a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="gender">Gender</a>
+                Gender
+                @*<a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="gender">@Html.DisplayNameFor(model => model.gender)</a>*@
             </th>
             <th>
             </th>
@@ -69,25 +84,30 @@
     </tbody>
 </table>
 
-@{
-    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
-}
+Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
 
-<a asp-action="Index"
-   asp-route-sortOrder="@ViewData["CurrentSort"]"
-   asp-route-pageNumber="@(Model.PageIndex - 1)"
-   asp-route-currentFilter="@ViewData["CurrentFilter"]"
-   class="btn btn-default @prevDisabled">
-    Previous
-</a>
-<a asp-action="Index"
-   asp-route-sortOrder="@ViewData["CurrentSort"]"
-   asp-route-pageNumber="@(Model.PageIndex + 1)"
-   asp-route-currentFilter="@ViewData["CurrentFilter"]"
-   class="btn btn-default @nextDisabled">
-    Next
-</a>
+@*@Html.PagedListPager(Model, page => Url.Action("Index", new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }))*@
+@*@Html.PagedListPager(Model, page => Url.Action("Index", new { page }))*@
+
+@*@{
+        var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+        var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+    }
+
+    <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-pageNumber="@(Model.PageIndex - 1)"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       class="btn btn-default @prevDisabled">
+        Previous
+    </a>
+    <a asp-action="Index"
+       asp-route-sortOrder="@ViewData["CurrentSort"]"
+       asp-route-pageNumber="@(Model.PageIndex + 1)"
+       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       class="btn btn-default @nextDisabled">
+        Next
+    </a>*@
 
 @if (this.User.Identity.IsAuthenticated)
 {

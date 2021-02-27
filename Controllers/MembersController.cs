@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.AspNetCore.SignalR;
 using CsvHelper.Configuration;
 using CsvHelper;
+using PagedList;
 
 namespace AspNetCore.Controllers
 {
@@ -32,8 +33,78 @@ namespace AspNetCore.Controllers
             _hubContext = hubcontext;
         }
 
+        public ViewResult Index(string sortOrder, string currentFilter, string searchString, int? page)
+        {
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+            ViewBag.DateSortParm = sortOrder == "date" ? "date_desc" : "date";
+
+            if (searchString != null)
+            {
+                page = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewBag.CurrentFilter = searchString;
+
+            var students = from s in _context.Member
+                           select s;
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                students = students.Where(s => s.gender.Contains(searchString)
+                                       || s.municipality_name.Contains(searchString));
+            }
+            switch (sortOrder)
+            {
+                case "name_desc":
+                    students = students.OrderByDescending(s => s.municipality_name);
+                    break;
+                case "date":
+                    students = students.OrderBy(s => s.confirmation_date);
+                    break;
+                case "date_desc":
+                    students = students.OrderByDescending(s => s.confirmation_date);
+                    break;
+                default:  // Name ascending 
+                    students = students.OrderBy(s => s.OID);
+                    break;
+            }
+
+            int pageSize = 3;
+            int pageNumber = (page ?? 1);
+            return View(students.ToPagedList(pageNumber, pageSize));
+        }
+        /*
+                public async Task<IActionResult> Index(string sortOrder)
+                {
+                    ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
+                    ViewBag.DateSortParm = sortOrder == "date" ? "date_desc" : "date";
+                    var students = from s in _context.Member
+                                   select s;
+                    switch (sortOrder)
+                    {
+                        case "name_desc":
+                            students = students.OrderByDescending(s => s.age_bracket);
+                            break;
+                        case "date":
+                            students = students.OrderBy(s => s.confirmation_date);
+                            break;
+                        case "date_desc":
+                            students = students.OrderByDescending(s => s.confirmation_date);
+                            break;
+                        default:
+                            students = students.OrderBy(s => s.gender);
+                            break;
+                    }
+                    //return View(students.ToList());
+                    return View(students);
+                }*/
+
         // GET: Members
-        public async Task<IActionResult> Index(string? searchString, string? currentFilter, int? pageNumber)
+        /*public async Task<IActionResult> Index(string? searchString, string? currentFilter, int? pageNumber)
         {
             var members = from s in _context.Member
                           select s;
@@ -85,7 +156,7 @@ namespace AspNetCore.Controllers
             }
             int pageSize = 10;
             return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? 1, pageSize));
-        }
+        }*/
 
         // GET: Members/Chart
         public async Task<IActionResult> Chart(string? groupBy)
