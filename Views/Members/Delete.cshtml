@@ -2,6 +2,10 @@
 
 @{
     ViewData["Title"] = "Confirm Delete";
+
+    var currentPage = ViewBag.CurrentPage;
+    var currentSort = ViewBag.CurrentSort;
+    var currentFilter = ViewBag.CurrentFilter;
 }
 
 <div class="modal-dialog">
@@ -61,7 +65,10 @@
                 </dd>
             </dl>
 
-            <form asp-action="Delete">
+            <form asp-action="Delete"
+                  asp-route-pageNumber="@currentPage"
+                  asp-route-sortOrder="@currentSort"
+                  asp-route-currentFilter="@currentFilter">
                 <input type="hidden" asp-for="OID" />
                 <input type="submit" value="Delete" class="btn btn-danger" />
             </form>

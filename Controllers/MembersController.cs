@@ -335,7 +335,7 @@ namespace AspNetCore.Controllers
                     transaction.Commit();
                 }
             }
-            return Redirect("Database");
+            return Redirect(nameof(Database));
         }
 
         [Authorize]
@@ -360,7 +360,7 @@ namespace AspNetCore.Controllers
                             return File(ms.ToArray(), "text/csv", $"export_{DateTime.UtcNow.Ticks}.csv");
                         }
                     }
-                    return Redirect("Database");
+                    return Redirect(nameof(Database));
                 }
             }
             return PartialView();
@@ -384,7 +384,7 @@ namespace AspNetCore.Controllers
                         _context.Database.ExecuteSqlRaw("SET IDENTITY_INSERT dbo.TestMembers OFF");
                         transaction.Commit();
                     }
-                    return Redirect("Database");
+                    return Redirect(nameof(Database));
                 }
             }
             return PartialView();
@@ -410,8 +410,12 @@ namespace AspNetCore.Controllers
 
         // GET: Members/Create
         [Authorize]
-        public IActionResult Create()
+        public IActionResult Create(string? currentFilter, string? sortOrder, int? pageNumber)
         {
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.CurrentFilter = currentFilter;
+
             return PartialView();
             //return View();
         }
@@ -422,7 +426,7 @@ namespace AspNetCore.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Create([Bind("OID,x,y,case_code,municipality_code,municipality_name,age_bracket,gender")] Member member)
+        public async Task<IActionResult> Create([Bind("OID,x,y,case_code,municipality_code,municipality_name,age_bracket,gender")] Member member, string? currentFilter, string? sortOrder, int? pageNumber)
         {
             if (ModelState.IsValid)
             {
@@ -430,7 +434,8 @@ namespace AspNetCore.Controllers
                 _context.Add(member);
                 await _context.SaveChangesAsync();
                 await this._hubContext.Clients.All.SendAsync("ReceiveMessage", member.gender, member.confirmation_date.ToString());
-                return RedirectToAction(nameof(Index));
+                //return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { pageNumber = pageNumber, sortOrder = sortOrder, currentFilter = currentFilter });
             }
             return PartialView(member);
             //return View(member);
@@ -438,8 +443,12 @@ namespace AspNetCore.Controllers
 
         // GET: Members/Edit/5
         [Authorize]
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string? currentFilter, string? sortOrder, int? pageNumber)
         {
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.CurrentFilter = currentFilter;
+
             if (id == null)
             {
                 return NotFound();
@@ -460,7 +469,7 @@ namespace AspNetCore.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize]
-        public async Task<IActionResult> Edit(int id, [Bind("OID,x,y,case_code,confirmation_date,municipality_code,municipality_name,age_bracket,gender")] Member member)
+        public async Task<IActionResult> Edit(int id, [Bind("OID,x,y,case_code,confirmation_date,municipality_code,municipality_name,age_bracket,gender")] Member member, string? currentFilter, string? sortOrder, int? pageNumber)
         {
             if (id != member.OID)
             {
@@ -485,15 +494,20 @@ namespace AspNetCore.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { pageNumber = pageNumber, sortOrder = sortOrder, currentFilter = currentFilter });
+                //return RedirectToAction(nameof(Index));
             }
             return View(member);
         }
 
         // GET: Members/Delete/5
         [Authorize]
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int? id, string? currentFilter, string? sortOrder, int? pageNumber)
         {
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.CurrentFilter = currentFilter;
+
             if (id == null)
             {
                 return NotFound();
@@ -514,12 +528,13 @@ namespace AspNetCore.Controllers
         // POST: Members/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id, string? currentFilter, string? sortOrder, int? pageNumber)
         {
             var member = await _context.Member.FindAsync(id);
             _context.Member.Remove(member);
             await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            //return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { pageNumber = pageNumber, sortOrder = sortOrder, currentFilter = currentFilter });
         }
 
         private bool MemberExists(int id)

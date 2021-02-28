@@ -1,6 +1,10 @@
 ﻿@model AspNetCore.Models.Member
 @{
     ViewData["Title"] = "Create";
+
+    var currentPage = ViewBag.CurrentPage;
+    var currentSort = ViewBag.CurrentSort;
+    var currentFilter = ViewBag.CurrentFilter;
 }
 
 <div class="modal-dialog">
@@ -9,7 +13,10 @@
             <h4>@ViewData["Title"]</h4><h4>@ViewData["omw"]</h4><button class="close" data-dismiss="modal" area-hidden="true">X</button>
         </div>
         <div class="modal-body">
-            <form asp-action="Create">
+            <form asp-action="Create"
+                  asp-route-pageNumber="@currentPage"
+                  asp-route-sortOrder="@currentSort"
+                  asp-route-currentFilter="@currentFilter">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="form-group">
                     <label asp-for="x" class="control-label"></label>

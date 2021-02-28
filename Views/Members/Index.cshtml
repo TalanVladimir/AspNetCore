@@ -33,12 +33,22 @@ Search:
         <input type="text" class="form-control" name="currentFilter" value="@currentFilter">
     </div>
     <div class="col-auto">
-        <a type="submit" class="btn btn-primary" asp-action="Index">Clear Filters</a>
+        <a asp-action="Index"
+           type="submit"
+           class="btn btn-primary">
+            Clear Filters
+        </a>
     </div>
     @if (this.User.Identity.IsAuthenticated)
     {
         <div class="col-auto">
-            <a class="btn btn-success event" asp-action="Create">Create</a>
+            <a asp-action="Create"
+               asp-route-pageNumber="@currentPage"
+               asp-route-sortOrder="@currentSort"
+               asp-route-currentFilter="@currentFilter"
+               class="btn btn-success event">
+                Create
+            </a>
         </div>
     }
 </form>
@@ -101,10 +111,33 @@ Search:
                 </td>
                 <td>
                     @if (this.User.Identity.IsAuthenticated)
-                    {<a class="btn btn-primary event" asp-action="Edit" asp-route-id="@item.OID">Edit</a>}
-                    <a class="btn btn-secondary event" asp-action="Details" asp-controller="Members" asp-route-id="@item.OID">Details</a>
+                    {<a asp-action="Edit"
+                        asp-route-pageNumber="@currentPage"
+                        asp-route-sortOrder="@currentSort"
+                        asp-route-currentFilter="@currentFilter"
+                        asp-route-id="@item.OID"
+                        class="btn btn-primary event">
+                            Edit
+                        </a>
+                    }
+                    <a asp-action="Details"
+                       asp-route-pageNumber="@currentPage"
+                       asp-route-sortOrder="@currentSort"
+                       asp-route-currentFilter="@currentFilter"
+                       asp-route-id="@item.OID"
+                       class="btn btn-secondary event">
+                        Details
+                    </a>
                     @if (this.User.Identity.IsAuthenticated)
-                    {<a class="btn btn-danger event" asp-action="Delete" asp-route-id="@item.OID">Delete</a>}
+                    {<a asp-action="Delete"
+                        asp-route-pageNumber="@currentPage"
+                        asp-route-sortOrder="@currentSort"
+                        asp-route-currentFilter="@currentFilter"
+                        asp-route-id="@item.OID"
+                        class="btn btn-danger event">
+                            Delete
+                        </a>
+                    }
                 </td>
             </tr>
         }
@@ -190,23 +223,3 @@ Search:
         </li>
     </ul>
 </nav>
-
-<!--<p>-->
-@*<a asp-action="Index"
-       asp-route-pageNumber="@(Model.PageIndex - 1)"
-       asp-route-sortOrder="@currentSort"
-       asp-route-currentFilter="@currentFilter"
-       class="btn btn-default @prevDisabled">
-        Previous
-    </a>
-    <a asp-action="Index"
-       asp-route-pageNumber="@(Model.PageIndex + 1)"
-       asp-route-sortOrder="@currentSort"
-       asp-route-currentFilter="@currentFilter"
-       class="btn btn-default @nextDisabled">
-        Next
-    </a>*@
-<!--<p class="btn btn-default">
-    Page @Model.PageIndex of @Model.TotalPages
-<p />
-</p>-->
