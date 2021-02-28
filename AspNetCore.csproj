@@ -25,7 +25,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="5.0.2" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.2" />
     <PackageReference Include="Owin" Version="1.0.0" />
-    <PackageReference Include="PagedList.Mvc" Version="4.5.0" />
   </ItemGroup>
 
 </Project>

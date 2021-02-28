@@ -39,6 +39,9 @@ namespace AspNetCore
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddControllersWithViews();
             services.AddHttpContextAccessor();
+            /*
+                        services.AddMvc();
+                        services.AddPaging();*/
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -69,7 +72,7 @@ namespace AspNetCore
                 (
                     name: "default",
                     // todo startup event
-                    //pattern: "{controller=Home}/{action=Index}/{id?}");
+                    //pattern: "{controller=Home}/{action=Index}/{id?}"
                     pattern: "{controller=Members}/{action=Index}/{id?}"
                 );
 

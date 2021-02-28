@@ -16,7 +16,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.AspNetCore.SignalR;
 using CsvHelper.Configuration;
 using CsvHelper;
-using PagedList;
 
 namespace AspNetCore.Controllers
 {
@@ -33,85 +32,24 @@ namespace AspNetCore.Controllers
             _hubContext = hubcontext;
         }
 
-        public ViewResult Index(string sortOrder, string currentFilter, string searchString, int? page)
-        {
-            ViewBag.CurrentSort = sortOrder;
-            ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
-            ViewBag.DateSortParm = sortOrder == "date" ? "date_desc" : "date";
-
-            if (searchString != null)
-            {
-                page = 1;
-            }
-            else
-            {
-                searchString = currentFilter;
-            }
-
-            ViewBag.CurrentFilter = searchString;
-
-            var students = from s in _context.Member
-                           select s;
-            if (!String.IsNullOrEmpty(searchString))
-            {
-                students = students.Where(s => s.gender.Contains(searchString)
-                                       || s.municipality_name.Contains(searchString));
-            }
-            switch (sortOrder)
-            {
-                case "name_desc":
-                    students = students.OrderByDescending(s => s.municipality_name);
-                    break;
-                case "date":
-                    students = students.OrderBy(s => s.confirmation_date);
-                    break;
-                case "date_desc":
-                    students = students.OrderByDescending(s => s.confirmation_date);
-                    break;
-                default:  // Name ascending 
-                    students = students.OrderBy(s => s.OID);
-                    break;
-            }
-
-            int pageSize = 3;
-            int pageNumber = (page ?? 1);
-            return View(students.ToPagedList(pageNumber, pageSize));
-        }
-        /*
-                public async Task<IActionResult> Index(string sortOrder)
-                {
-                    ViewBag.NameSortParm = String.IsNullOrEmpty(sortOrder) ? "name_desc" : "";
-                    ViewBag.DateSortParm = sortOrder == "date" ? "date_desc" : "date";
-                    var students = from s in _context.Member
-                                   select s;
-                    switch (sortOrder)
-                    {
-                        case "name_desc":
-                            students = students.OrderByDescending(s => s.age_bracket);
-                            break;
-                        case "date":
-                            students = students.OrderBy(s => s.confirmation_date);
-                            break;
-                        case "date_desc":
-                            students = students.OrderByDescending(s => s.confirmation_date);
-                            break;
-                        default:
-                            students = students.OrderBy(s => s.gender);
-                            break;
-                    }
-                    //return View(students.ToList());
-                    return View(students);
-                }*/
-
         // GET: Members
-        /*public async Task<IActionResult> Index(string? searchString, string? currentFilter, int? pageNumber)
+        public async Task<IActionResult> Index(string? currentFilter, string? sortOrder, int? pageNumber, int page = 1, int pageSize = 9, int pageLimit = 5)
         {
+            ViewBag.DateSortParam = sortOrder == "date" ? "date_desc" : "date";
+            ViewBag.NameSortParam = sortOrder == "name" ? "name_desc" : "name";
+            ViewBag.AgeSortParam = sortOrder == "age" ? "age_desc" : "age";
+            ViewBag.GenderSortParam = sortOrder == "gender" ? "gender_desc" : "gender";
+
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.CurrentSort = sortOrder;
+            ViewBag.CurrentFilter = currentFilter;
+
             var members = from s in _context.Member
                           select s;
 
-            if (!String.IsNullOrEmpty(searchString))
+            if (!String.IsNullOrEmpty(currentFilter))
             {
-                foreach (string part in searchString.Split(' '))
+                foreach (string part in currentFilter.Split(' '))
                 {
                     if (!string.IsNullOrEmpty(part))
                     {
@@ -127,36 +65,38 @@ namespace AspNetCore.Controllers
                 }
             }
 
-            switch (currentFilter)
+            switch (sortOrder)
             {
-                case "x":
-                    members = members.OrderBy(s => s.x);
-                    break;
-                case "y":
-                    members = members.OrderBy(s => s.y);
-                    break;
-                case "confirmation_date":
+                case "date":
                     members = members.OrderBy(s => s.confirmation_date);
                     break;
-                case "municipality_code":
-                    members = members.OrderBy(s => s.municipality_code);
+                case "date_desc":
+                    members = members.OrderByDescending(s => s.confirmation_date);
                     break;
-                case "municipality_name":
+                case "name":
                     members = members.OrderBy(s => s.municipality_name);
                     break;
-                case "age_bracket":
+                case "name_desc":
+                    members = members.OrderByDescending(s => s.municipality_name);
+                    break;
+                case "age":
                     members = members.OrderBy(s => s.age_bracket);
+                    break;
+                case "age_desc":
+                    members = members.OrderByDescending(s => s.age_bracket);
                     break;
                 case "gender":
                     members = members.OrderBy(s => s.gender);
+                    break;
+                case "gender_desc":
+                    members = members.OrderByDescending(s => s.gender);
                     break;
                 default:
                     members = members.OrderByDescending(s => s.confirmation_date);
                     break;
             }
-            int pageSize = 10;
-            return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? 1, pageSize));
-        }*/
+            return View(await MembersPaginatedList<Member>.CreateAsync(members.AsNoTracking(), pageNumber ?? page, pageSize, pageLimit));
+        }
 
         // GET: Members/Chart
         public async Task<IActionResult> Chart(string? groupBy)
@@ -231,7 +171,28 @@ namespace AspNetCore.Controllers
                     titleChart = "Group By Gender";
                     titleX = "Gender";
                     break;
+                case "municipality_name":
+                    var query_municipality_name = from s in _context.Member
+                                                  orderby s.municipality_name
+                                                  group s by s.municipality_name into g
+                                                  select new
+                                                  {
+                                                      Name = g.Key,
+                                                      Total = g.Count()
+                                                  };
+                    var res_municipality_name = query_municipality_name.OrderBy(s => s.Name);
+                    foreach (var item in res_municipality_name)
+                    {
+                        Array.Resize(ref setX, setX.Length + 1);
+                        setX[setX.Length - 1] = item.Name;
+                        Array.Resize(ref setY, setY.Length + 1);
+                        setY[setY.Length - 1] = item.Total.ToString();
+                    }
+                    titleChart = "Group By Municipality Name";
+                    titleX = "Municipality Names";
+                    break;
                 case "age_gender":
+                default:
                     defView = false;
                     var query_age_gender = from r in _context.Member
                                            group r by new { r.age_bracket, r.gender } into g
@@ -292,9 +253,12 @@ namespace AspNetCore.Controllers
 
                         if (agCount == vCount)
                         {
+                            string delim = "";
+                            if (agCount != 1)
+                                delim = ",";
                             for (int i = 0; i < count; i++)
                             {
-                                rez[i] = rez[i] + "," + temp[i].ToString();
+                                rez[i] = rez[i] + delim + temp[i].ToString();
                                 Array.Resize(ref setX, setX.Length + 1);
                                 setX[setX.Length - 1] = tAge;
                             }
@@ -318,27 +282,6 @@ namespace AspNetCore.Controllers
                     titleChart = "Group By Age and Gender";
 
                     ViewData["series"] = viewData;
-                    break;
-                case "municipality_name":
-                default:
-                    var query_municipality_name = from s in _context.Member
-                                                  orderby s.municipality_name
-                                                  group s by s.municipality_name into g
-                                                  select new
-                                                  {
-                                                      Name = g.Key,
-                                                      Total = g.Count()
-                                                  };
-                    var res_municipality_name = query_municipality_name.OrderBy(s => s.Name);
-                    foreach (var item in res_municipality_name)
-                    {
-                        Array.Resize(ref setX, setX.Length + 1);
-                        setX[setX.Length - 1] = item.Name;
-                        Array.Resize(ref setY, setY.Length + 1);
-                        setY[setY.Length - 1] = item.Total.ToString();
-                    }
-                    titleChart = "Group By Municipality Name";
-                    titleX = "Municipality Names";
                     break;
             }
 

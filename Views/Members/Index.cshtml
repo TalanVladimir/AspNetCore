@@ -1,10 +1,24 @@
 ﻿@*@model IEnumerable<AspNetCore.Models.Member>*@
-@model PagedList.IPagedList<AspNetCore.Models.Member>
-@using PagedList.Mvc;
-<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+@model MembersPaginatedList<AspNetCore.Models.Member>
 
 @{
     ViewData["Title"] = "Index";
+
+
+    var dateSortParam = ViewBag.DateSortParam;
+    var nameSortParam = ViewBag.NameSortParam;
+    var ageSortParam = ViewBag.AgeSortParam;
+    var genderSortParam = ViewBag.GenderSortParam;
+
+    var currentPage = ViewBag.CurrentPage;
+    var currentSort = ViewBag.CurrentSort;
+    var currentFilter = ViewBag.CurrentFilter;
+
+    var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
+    var nextDisabled = !Model.HasNextPage ? "disabled" : "";
+
+    var limitPages = Model.LimitPages;
+    var totalPages = Model.TotalPages;
 }
 
 <h1>@ViewData["Title"]</h1>
@@ -13,41 +27,57 @@
     <div id="dialogContent" class="modal-dialog"></div>
 </div>
 
-@*<form asp-controller="Members" asp-action="Index" method="get">
-        <p>
-            Search: <input class="form-control" style="width:300px" type="text" name="searchString" />
-        </p>
-    </form>*@
-@using (Html.BeginForm("Index", "Member", FormMethod.Get))
-{
-    <p>
-        Find by name: @Html.TextBox("SearchString", ViewBag.CurrentFilter as string)
-        <input type="submit" value="Search" />
-    </p>
-}
+Search:
+<form class="row g-3" asp-controller="Members" asp-action="Index" method="get">
+    <div class="col-auto">
+        <input type="text" class="form-control" name="currentFilter" value="@currentFilter">
+    </div>
+    <div class="col-auto">
+        <a type="submit" class="btn btn-primary" asp-action="Index">Clear Filters</a>
+    </div>
+    @if (this.User.Identity.IsAuthenticated)
+    {
+        <div class="col-auto">
+            <a class="btn btn-success event" asp-action="Create">Create</a>
+        </div>
+    }
+</form>
+<br />
 
 <table class="table">
     <thead>
         <tr>
             <th>
-                @*@Html.ActionLink(@Html.DisplayNameFor(model => model.confirmation_date), "Index", new { sortOrder = ViewBag.DateSortParm })*@
-                @Html.ActionLink("Confirmation Date", "Index", new { sortOrder = ViewBag.DateSortParm, currentFilter = ViewBag.CurrentFilter })
+                <a asp-action="Index"
+                   asp-route-pageNumber="@currentPage"
+                   asp-route-sortOrder="@dateSortParam"
+                   asp-route-currentFilter="@currentFilter">
+                    Confirmation Date
+                </a>
             </th>
             <th>
-                Code
-                @*<a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_code">@Html.DisplayNameFor(model => model.case_code)</a>*@
+                <a asp-action="Index"
+                   asp-route-pageNumber="@currentPage"
+                   asp-route-sortOrder="@nameSortParam"
+                   asp-route-currentFilter="@currentFilter">
+                    Municipality Name
+                </a>
             </th>
             <th>
-                @Html.ActionLink("Municipality Name", "Index", new { sortOrder = ViewBag.NameSortParm, currentFilter = ViewBag.CurrentFilter })
-                @*<a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="municipality_name">@Html.DisplayNameFor(model => model.municipality_name)</a>*@
+                <a asp-action="Index"
+                   asp-route-pageNumber="@currentPage"
+                   asp-route-sortOrder="@ageSortParam"
+                   asp-route-currentFilter="@currentFilter">
+                    Age Bracket
+                </a>
             </th>
             <th>
-                Age
-                @*<a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="age_bracket">@Html.DisplayNameFor(model => model.age_bracket)</a>*@
-            </th>
-            <th>
-                Gender
-                @*<a asp-action="Index" asp-route-sortOrder="name_desc" asp-route-currentFilter="gender">@Html.DisplayNameFor(model => model.gender)</a>*@
+                <a asp-action="Index"
+                   asp-route-pageNumber="@currentPage"
+                   asp-route-sortOrder="@genderSortParam"
+                   asp-route-currentFilter="@currentFilter">
+                    Gender
+                </a>
             </th>
             <th>
             </th>
@@ -59,9 +89,6 @@
             <tr>
                 <td>
                     @Html.DisplayFor(modelItem => item.confirmation_date)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.municipality_code)
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.municipality_name)
@@ -84,32 +111,102 @@
     </tbody>
 </table>
 
-Page @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) of @Model.PageCount
+<nav aria-label="Page navigation example">
+    <ul class="pagination justify-content-start">
+        <li class="page-item @prevDisabled">
+            <a asp-action="Index"
+               asp-route-pageNumber="1"
+               asp-route-sortOrder="@currentSort"
+               asp-route-currentFilter="@currentFilter"
+               class="page-link">
+                First
+            </a>
+        </li>
+        <li class="page-item @prevDisabled">
+            <a asp-action="Index"
+               asp-route-pageNumber="@(Model.PageIndex - 1)"
+               asp-route-sortOrder="@currentSort"
+               asp-route-currentFilter="@currentFilter"
+               class="page-link">
+                Previous
+            </a>
+        </li>
+        @{
+            if (currentPage == null)
+                currentPage = 1;
+            int startPage = 1;
+            int endPage = totalPages;
+            int maxPages = limitPages * 2;
+            if (totalPages > maxPages)
+            {
+                if (currentPage > limitPages)
+                {
+                    endPage = currentPage + limitPages;
+                    if (endPage > totalPages)
+                        endPage = totalPages;
+                    startPage = endPage - maxPages;
+                }
+                else
+                {
+                    startPage = currentPage - limitPages;
+                    if (startPage < 1)
+                        startPage = 1;
+                    endPage = startPage + maxPages;
+                }
+            }
+        }
+        @for (int i = startPage; i < endPage + 1; i++)
+        {
+            var active = string.Empty;
+            if (i == currentPage)
+                active = "active";
+            <li class="page-item @active">
+                <a asp-action="Index"
+                   asp-route-pageNumber="@i"
+                   asp-route-sortOrder="@currentSort"
+                   asp-route-currentFilter="@currentFilter"
+                   class="page-link">
+                    @i
+                </a>
+            </li>
+        }
+        <li class="page-item @nextDisabled">
+            <a asp-action="Index"
+               asp-route-pageNumber="@(Model.PageIndex + 1)"
+               asp-route-sortOrder="@currentSort"
+               asp-route-currentFilter="@currentFilter"
+               class="page-link">
+                Next
+            </a>
+        </li>
+        <li class="page-item @nextDisabled">
+            <a asp-action="Index"
+               asp-route-pageNumber="@totalPages"
+               asp-route-sortOrder="@currentSort"
+               asp-route-currentFilter="@currentFilter"
+               class="page-link">
+                Last
+            </a>
+        </li>
+    </ul>
+</nav>
 
-@*@Html.PagedListPager(Model, page => Url.Action("Index", new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }))*@
-@*@Html.PagedListPager(Model, page => Url.Action("Index", new { page }))*@
-
-@*@{
-        var prevDisabled = !Model.HasPreviousPage ? "disabled" : "";
-        var nextDisabled = !Model.HasNextPage ? "disabled" : "";
-    }
-
-    <a asp-action="Index"
-       asp-route-sortOrder="@ViewData["CurrentSort"]"
+<!--<p>-->
+@*<a asp-action="Index"
        asp-route-pageNumber="@(Model.PageIndex - 1)"
-       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       asp-route-sortOrder="@currentSort"
+       asp-route-currentFilter="@currentFilter"
        class="btn btn-default @prevDisabled">
         Previous
     </a>
     <a asp-action="Index"
-       asp-route-sortOrder="@ViewData["CurrentSort"]"
        asp-route-pageNumber="@(Model.PageIndex + 1)"
-       asp-route-currentFilter="@ViewData["CurrentFilter"]"
+       asp-route-sortOrder="@currentSort"
+       asp-route-currentFilter="@currentFilter"
        class="btn btn-default @nextDisabled">
         Next
     </a>*@
-
-@if (this.User.Identity.IsAuthenticated)
-{
-    <a class="btn btn-success event" asp-action="Create">Create</a>
-}
+<!--<p class="btn btn-default">
+    Page @Model.PageIndex of @Model.TotalPages
+<p />
+</p>-->
